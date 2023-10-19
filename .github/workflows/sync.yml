@@ -1,0 +1,29 @@
+name: Sync Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set git email and name
+        run: |
+          git config --global user.email "kedro@kedro.com"
+          git config --global user.name "Kedro"
+
+      - name: Merge main into develop or raise a PR
+        run: ./tools/circleci/github_scripts/merge.sh ${{ github.workspace }} "main" "develop" "${GITHUB_TAGGING_TOKEN}"
+        env:
+          GITHUB_TAGGING_TOKEN: ${{ secrets.GITHUB_TOKEN }}

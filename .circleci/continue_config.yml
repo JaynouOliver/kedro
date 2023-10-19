@@ -370,9 +370,6 @@ jobs:
           name: Trigger Read The Docs build
           command: ./tools/circleci/rtd-build.sh ${RTD_TOKEN} latest
       - run:
-          name: Maybe merge main into develop or raise a PR
-          command: ./tools/circleci/github_scripts/merge.sh . "main" "develop" "${GITHUB_TAGGING_TOKEN}"
-      - run:
           name: Maybe trigger the release workflow
           command: |
               KEDRO_VERSION=$(./tools/circleci/github_scripts/kedro_version.py ./kedro)
@@ -383,17 +380,6 @@ jobs:
               else
                   echo "Kedro version ${KEDRO_VERSION} already exists on PyPI, skipping..."
               fi
-
-  merge_pr_to_develop:
-    docker:
-      # https://circleci.com/docs/2.0/circleci-images/#circleci-base-image
-      - image: cimg/base:2020.01
-    steps:
-      - checkout
-      - add_ssh_keys
-      - run:
-          name: Maybe merge an automatic PR into develop
-          command: ./tools/circleci/github_scripts/attempt_merge_pr.sh "merge-main-to-develop" "develop" "${GITHUB_TAGGING_TOKEN}"
 
   build_docker_image:
     parameters:
@@ -594,18 +580,6 @@ workflows:
           filters:
             branches:
               only: main
-
-  hourly_pr_merge:
-    when:
-      and:
-        - <<pipeline.parameters.run_hourly>>
-        - not: <<pipeline.parameters.release_kedro>>
-        - not: <<pipeline.parameters.run_nightly>>
-    jobs:
-      - merge_pr_to_develop:
-        filters:
-          branches:
-            only: main
 
   # Python versions that are supported on `main`.
   nightly_build_main:

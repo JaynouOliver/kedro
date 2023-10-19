@@ -1,0 +1,27 @@
+name: Hourly PR Merge
+
+on:
+  schedule:
+    - cron: '0 * * * *' # every hour
+  workflow_dispatch: # allows manual triggering
+
+jobs:
+  auto_merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Bash
+        run: sudo apt-get install bash
+
+      - name: Give execute permission to script
+        run: chmod +x .github/scripts/attempt_merge_pr.sh
+
+      - name: Execute PR merge script
+        env:
+          SOURCE_BRANCH: "main"
+          TARGET_BRANCH: "develop"
+          GITHUB_TAGGING_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/github_actions/attempt_merge_pr.sh $SOURCE_BRANCH $TARGET_BRANCH $GITHUB_TAGGING_TOKEN
