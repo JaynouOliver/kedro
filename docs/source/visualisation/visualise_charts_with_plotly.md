@@ -4,16 +4,16 @@ This page describes how to make interactive visualisations of a Kedro project wi
 
 ## Visualisation with Plotly
 
-We use the [spaceflights tutorial](../tutorial/spaceflights_tutorial.md) and add a reporting pipeline that uses Plotly. Even if you have not yet worked through the tutorial, you can still follow this example; you'll need to use the [Kedro starter for the spaceflights tutorial](https://github.com/kedro-org/kedro-starters/tree/main/spaceflights) to generate a copy of the project with working code in place.
+We use the [spaceflights tutorial](../tutorial/spaceflights_tutorial.md) and add a reporting pipeline that uses Plotly. Even if you have not yet worked through the tutorial, you can still follow this example; you'll need to use the [Kedro starter for the spaceflights tutorial](https://github.com/kedro-org/kedro-starters/tree/main/spaceflights-pandas) to generate a copy of the project with working code in place.
 
 If you haven't installed Kedro [follow the documentation to get set up](../get_started/install.md).
 
 Then, in your terminal window, navigate to the folder you want to store the project.
 
-Generate a copy of the spaceflights tutorial project with all the code in place by using the [Kedro starter for the spaceflights tutorial](https://github.com/kedro-org/kedro-starters/tree/main/spaceflights):
+Generate a copy of the spaceflights tutorial project with all the code in place by using the [Kedro starter for the spaceflights tutorial](https://github.com/kedro-org/kedro-starters/tree/main/spaceflights-pandas):
 
 ```bash
-kedro new --starter=spaceflights
+kedro new --starter=spaceflights-pandas
 ```
 
 When prompted for a project name, you can enter anything, but we will assume `Spaceflights` throughout.
@@ -24,21 +24,21 @@ When your project is ready, navigate to the root directory of the project.
 
 There are two types of Plotly datasets supported by Kedro:
 
-* `plotly.PlotlyDataSet` which only supports [Plotly Express](https://plotly.com/python/plotly-express)
-* `plotly.JSONDataSet` which supports Plotly Express and [Plotly Graph Objects](https://plotly.com/python/graph-objects/)
+* `plotly.PlotlyDataset` which only supports [Plotly Express](https://plotly.com/python/plotly-express)
+* `plotly.JSONDataset` which supports Plotly Express and [Plotly Graph Objects](https://plotly.com/python/graph-objects/)
 
 To use the Plotly datasets, you must update the `requirements.txt` file in the `src` folder of the Kedro project to add the following dependencies:
 
 
 ```text
-kedro-datasets[pandas.CSVDataSet, pandas.ExcelDataSet, pandas.ParquetDataSet]~=1.1
-kedro-datasets[plotly.PlotlyDataSet, plotly.JSONDataSet]~=1.1
+kedro-datasets[pandas.CSVDataset, pandas.ExcelDataset, pandas.ParquetDataset]~=1.1
+kedro-datasets[plotly.PlotlyDataset, plotly.JSONDataset]~=1.1
 ```
 
 Navigate to the root directory of the project in your terminal and install the dependencies for the tutorial project:
 
 ```bash
-pip install -r src/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Configure the Data Catalog
@@ -47,7 +47,7 @@ To use the datasets, add them to the Data Catalog by updating `conf/base/catalog
 
 ```yaml
 shuttle_passenger_capacity_plot_exp:
-  type: plotly.PlotlyDataSet
+  type: plotly.PlotlyDataset
   filepath: data/08_reporting/shuttle_passenger_capacity_plot_exp.json
   versioned: true
   plotly_args:
@@ -62,7 +62,7 @@ shuttle_passenger_capacity_plot_exp:
       title: Shuttle Passenger capacity
 
 shuttle_passenger_capacity_plot_go:
-  type: plotly.JSONDataSet
+  type: plotly.JSONDataset
   filepath: data/08_reporting/shuttle_passenger_capacity_plot_go.json
   versioned: true
 ```
@@ -177,7 +177,7 @@ You can view Matplotlib charts in Kedro-Viz when you use the [Kedro MatplotLibWr
 
 ### Update the dependencies
 
-You must update the `src/requirements.txt` file in the Kedro project by adding the following dataset to enable Matplotlib for the project:
+You must update the `requirements.txt` file in the Kedro project by adding the following dataset to enable Matplotlib for the project:
 
 ```bash
 kedro-datasets[matplotlib.MatplotlibWriter]~=1.1
