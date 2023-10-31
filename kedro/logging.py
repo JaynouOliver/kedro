@@ -30,7 +30,7 @@ class RichHandler(rich.logging.RichHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         logging.captureWarnings(True)
-        rich.pretty.install()
+        # rich.pretty.install()
 
         # We suppress click here to hide tracebacks related to it conversely,
         # kedro is not suppressed to show its tracebacks for easier debugging.
@@ -55,4 +55,5 @@ class RichHandler(rich.logging.RichHandler):
             # Rich traceback handling does not work on databricks. Hopefully this will be
             # fixed on their side at some point, but until then we disable it.
             # See https://github.com/Textualize/rich/issues/2455
-            rich.traceback.install(**traceback_install_kwargs)
+            # rich.traceback.install(**traceback_install_kwargs)
+            pass
