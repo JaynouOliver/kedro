@@ -151,7 +151,7 @@ def ipython(metadata: ProjectMetadata, env, args, **kwargs):  # noqa: unused-arg
     _check_module_importable("IPython")
     if env:
         os.environ["KEDRO_ENV"] = env
-    call(["ipython", "--ext", "kedro.ipython"] + list(args))
+    call(["ipython", "-c", "%load_ext kedro.ipython"] + list(args))
 
 
 @project_group.command()
