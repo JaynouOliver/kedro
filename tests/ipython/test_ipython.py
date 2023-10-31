@@ -7,7 +7,7 @@ from IPython.testing.globalipapp import get_ipython
 
 from kedro.framework.project import pipelines
 from kedro.framework.startup import ProjectMetadata
-from kedro.ipython import _resolve_project_path, load_ipython_extension, reload_kedro
+from kedro.ipython import _reload_kedro, _resolve_project_path, load_ipython_extension
 from kedro.pipeline.modular_pipeline import pipeline as modular_pipeline
 
 PACKAGE_NAME = "fake_package_name"
@@ -66,7 +66,7 @@ class TestLoadKedroObjects:
         mocker.patch("kedro.ipython.load_entry_points", return_value=[mock_line_magic])
         expected_message = f"Registered line magic '{mock_line_magic_name}'"
 
-        reload_kedro(fake_metadata.project_path)
+        _reload_kedro(fake_metadata.project_path)
 
         log_messages = [record.getMessage() for record in caplog.records]
         assert expected_message in log_messages
@@ -87,7 +87,7 @@ class TestLoadKedroObjects:
             "_get_pipelines_registry_callable",
             return_value=my_register_pipeline,
         )
-        reload_kedro()
+        _reload_kedro()
 
         assert pipelines._content == {}  # Check if it is lazy loaded
         pipelines._load_data()  # Trigger data load
@@ -113,7 +113,7 @@ class TestLoadKedroObjects:
         )
         ipython_spy = mocker.spy(ipython, "push")
 
-        reload_kedro()
+        _reload_kedro()
 
         mock_session_create.assert_called_once_with(
             PACKAGE_NAME,
@@ -149,7 +149,7 @@ class TestLoadKedroObjects:
         dummy_dict = {"key": "value"}
         dummy_conf_source = "conf/"
 
-        reload_kedro(
+        _reload_kedro(
             fake_metadata.project_path, "env", {"key": "value"}, conf_source="conf/"
         )
 
@@ -177,7 +177,7 @@ class TestLoadIPythonExtension:
         ipython.magic("load_ext kedro.ipython")
 
     def test_load_extension_missing_dependency(self, mocker):
-        mocker.patch("kedro.ipython.reload_kedro", side_effect=ImportError)
+        mocker.patch("kedro.ipython._reload_kedro", side_effect=ImportError)
         mocker.patch(
             "kedro.ipython._find_kedro_project",
             return_value=mocker.Mock(),
@@ -214,7 +214,7 @@ class TestLoadIPythonExtension:
 
     def test_load_extension_register_line_magic(self, mocker, ipython):
         mocker.patch("kedro.ipython._find_kedro_project")
-        mock_reload_kedro = mocker.patch("kedro.ipython.reload_kedro")
+        mock_reload_kedro = mocker.patch("kedro.ipython._reload_kedro")
         load_ipython_extension(ipython)
         mock_reload_kedro.assert_called_once()
 
@@ -236,13 +236,13 @@ class TestLoadIPythonExtension:
     )
     def test_line_magic_with_valid_arguments(self, mocker, args, ipython):
         mocker.patch("kedro.ipython._find_kedro_project")
-        mocker.patch("kedro.ipython.reload_kedro")
+        mocker.patch("kedro.ipython.KedroMagics.reload_kedro")
 
         ipython.magic(f"reload_kedro {args}")
 
     def test_line_magic_with_invalid_arguments(self, mocker, ipython):
         mocker.patch("kedro.ipython._find_kedro_project")
-        mocker.patch("kedro.ipython.reload_kedro")
+        mocker.patch("kedro.ipython._reload_kedro")
         load_ipython_extension(ipython)
 
         with pytest.raises(

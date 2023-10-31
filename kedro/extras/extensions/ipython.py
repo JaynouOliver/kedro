@@ -12,8 +12,8 @@ import warnings
 
 from kedro import KedroDeprecationWarning
 from kedro.ipython import (  # noqa  # noqa: unused-import
+    _reload_kedro,
     load_ipython_extension,
-    reload_kedro,
 )
 
 warnings.warn(

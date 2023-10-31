@@ -10,7 +10,13 @@ from pathlib import Path
 from typing import Any
 
 from IPython import get_ipython
-from IPython.core.magic import needs_local_scope, register_line_magic
+from IPython.core.magic import (
+    Magics,
+    line_magic,
+    magics_class,
+    needs_local_scope,
+    register_line_magic,
+)
 from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
 
 from kedro.framework.cli import load_entry_points
@@ -27,15 +33,50 @@ from kedro.framework.startup import _is_project, bootstrap_project
 logger = logging.getLogger(__name__)
 
 
-def load_ipython_extension(ipython):
+@magics_class
+class KedroMagics(Magics):
+    @line_magic
+    @needs_local_scope
+    @magic_arguments()
+    @argument(
+        "path",
+        type=str,
+        help=(
+            "Path to the project root directory. If not given, use the previously set"
+            "project root."
+        ),
+        nargs="?",
+        default=None,
+    )
+    @argument("-e", "--env", type=str, default=None, help=ENV_HELP)
+    @argument(
+        "--params",
+        type=lambda value: _split_params(None, None, value),
+        default=None,
+        help=PARAMS_ARG_HELP,
+    )
+    @argument("--conf-source", type=str, default=None, help=CONF_SOURCE_HELP)
+    def reload_kedro(
+        self, line: str, local_ns: dict[str, Any] = None, conf_source: str = None
+    ):
+        """
+        The `%reload_kedro` IPython line magic.
+        See https://kedro.readthedocs.io/en/stable/notebooks_and_ipython/kedro_and_notebooks.html#reload-kedro-line-magic # noqa: line-too-long
+        for more.
+        """
+        args = parse_argstring(self.reload_kedro, line)
+        _reload_kedro(args.path, args.env, args.params, local_ns, args.conf_source)
+
+
+def load_ipython_extension(ipython, *args):
     """
     Main entry point when %load_ext kedro.ipython is executed, either manually or
     automatically through `kedro ipython` or `kedro jupyter lab/notebook`.
     IPython will look for this function specifically.
     See https://ipython.readthedocs.io/en/stable/config/extensions/index.html
     """
-    ipython.register_magic_function(magic_reload_kedro, magic_name="reload_kedro")
-
+    # ipython.register_magic_function(magic_reload_kedro, magic_name="reload_kedro")
+    ipython.register_magics(KedroMagics)
     if _find_kedro_project(Path.cwd()) is None:
         logger.warning(
             "Kedro extension was registered but couldn't find a Kedro project. "
@@ -43,42 +84,10 @@ def load_ipython_extension(ipython):
         )
         return
 
-    reload_kedro()
+    _reload_kedro()
 
 
-@needs_local_scope
-@magic_arguments()
-@argument(
-    "path",
-    type=str,
-    help=(
-        "Path to the project root directory. If not given, use the previously set"
-        "project root."
-    ),
-    nargs="?",
-    default=None,
-)
-@argument("-e", "--env", type=str, default=None, help=ENV_HELP)
-@argument(
-    "--params",
-    type=lambda value: _split_params(None, None, value),
-    default=None,
-    help=PARAMS_ARG_HELP,
-)
-@argument("--conf-source", type=str, default=None, help=CONF_SOURCE_HELP)
-def magic_reload_kedro(
-    line: str, local_ns: dict[str, Any] = None, conf_source: str = None
-):
-    """
-    The `%reload_kedro` IPython line magic.
-    See https://kedro.readthedocs.io/en/stable/notebooks_and_ipython/kedro_and_notebooks.html#reload-kedro-line-magic # noqa: line-too-long
-    for more.
-    """
-    args = parse_argstring(magic_reload_kedro, line)
-    reload_kedro(args.path, args.env, args.params, local_ns, args.conf_source)
-
-
-def reload_kedro(
+def _reload_kedro(
     path: str = None,
     env: str = None,
     extra_params: dict[str, Any] = None,
@@ -118,7 +127,7 @@ def reload_kedro(
         "Defined global variable 'context', 'session', 'catalog' and 'pipelines'"
     )
 
-    for line_magic in load_entry_points("line_magic"):
+    for line_magic in load_entry_points("line_magic"):  # noqa
         register_line_magic(needs_local_scope(line_magic))
         logger.info("Registered line magic '%s'", line_magic.__name__)  # type: ignore
 

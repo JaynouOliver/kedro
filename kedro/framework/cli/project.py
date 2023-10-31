@@ -133,11 +133,22 @@ def lint(
 
 @forward_command(project_group, forward_help=True)
 @env_option
+# @click.option(
+#     "--conf-source",
+#     type=click.Path(exists=True, file_okay=True, resolve_path=True),
+#     help=CONF_SOURCE_HELP,
+# )
+# @click.option(
+#     "--params",
+#     type=click.UNPROCESSED,
+#     default="",
+#     help=PARAMS_ARG_HELP,
+#     callback=_split_params,
+# )
 @click.pass_obj  # this will pass the metadata as first argument
 def ipython(metadata: ProjectMetadata, env, args, **kwargs):  # noqa: unused-argument
     """Open IPython with project specific variables loaded."""
     _check_module_importable("IPython")
-
     if env:
         os.environ["KEDRO_ENV"] = env
     call(["ipython", "--ext", "kedro.ipython"] + list(args))
